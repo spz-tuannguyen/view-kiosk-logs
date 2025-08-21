@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal Log Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 300;
+      }
+
+      .header p {
+        opacity: 0.8;
+        font-size: 1.1rem;
+      }
+
+      .upload-section {
+        padding: 30px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .upload-area {
+        border: 3px dashed #007bff;
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        background: white;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .upload-area:hover,
+      .upload-area.dragover {
+        border-color: #0056b3;
+        background: #f0f8ff;
+        transform: translateY(-2px);
+      }
+
+      .upload-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        color: #007bff;
+      }
+
+      .upload-text {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: #495057;
+      }
+
+      .upload-btn {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+      }
+
+      .upload-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
+      }
+
+      .file-info {
+        margin-top: 15px;
+        padding: 10px;
+        background: #e8f4fd;
+        border-radius: 8px;
+        font-weight: 500;
+        color: #0056b3;
+      }
+
+      .controls {
+        padding: 30px;
+        background: white;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        align-items: center;
+      }
+
+      .search-container {
+        flex: 1;
+        min-width: 250px;
+      }
+
+      .search-box {
+        width: 100%;
+        padding: 12px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .search-box:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .filter-item {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .filter-item:hover {
+        transform: translateY(-1px);
+      }
+
+      .filter-checkbox {
+        margin-right: 8px;
+        transform: scale(1.2);
+      }
+
+      .filter-label {
+        font-weight: 500;
+        color: #495057;
+        user-select: none;
+      }
+
+      .stats {
+        padding: 20px 30px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #007bff;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+      }
+
+      .log-container {
+        padding: 30px;
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      .log-entry {
+        counter-increment: log-counter;
+        margin-bottom: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .log-entry:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .log-entry::before {
+        content: counter(log-counter);
+        position: absolute;
+        top: 15px;
+        left: -45px;
+        width: 30px;
+        height: 30px;
+        background: #007bff;
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
+
+      .log-container {
+        counter-reset: log-counter;
+        padding-left: 60px;
+      }
+
+      .log-header {
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .timestamp {
+        font-weight: bold;
+        color: #495057;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+
+      .log-type {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-right: 10px;
+        text-transform: uppercase;
+      }
+
+      .type-api {
+        background: #28a745;
+        color: white;
+      }
+      .type-info {
+        background: #17a2b8;
+        color: white;
+      }
+      .type-warning {
+        background: #ffc107;
+        color: #212529;
+      }
+      .type-error {
+        background: #dc3545;
+        color: white;
+      }
+      .type-debug {
+        background: #6c757d;
+        color: white;
+      }
+
+      .method-tag {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+
+      .method-get {
+        background: #28a745;
+        color: white;
+      }
+      .method-post {
+        background: #007bff;
+        color: white;
+      }
+      .method-put {
+        background: #ffc107;
+        color: #212529;
+      }
+      .method-delete {
+        background: #dc3545;
+        color: white;
+      }
+
+      .url {
+        color: #6f42c1;
+        font-weight: 500;
+        font-family: "Courier New", monospace;
+      }
+
+      .log-content {
+        padding: 20px;
+      }
+
+      .content-section {
+        margin-bottom: 15px;
+      }
+
+      .content-label {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .toggle-icon {
+        margin-left: 8px;
+        transition: transform 0.3s ease;
+      }
+
+      .toggle-icon.collapsed {
+        transform: rotate(-90deg);
+      }
+
+      .json-content,
+      .text-content {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 15px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        max-height: 300px;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
+
+      .json-content {
+        color: #495057;
+      }
+
+      .duration {
+        font-style: italic;
+        color: #6c757d;
+        font-size: 0.9rem;
+        text-align: right;
+        margin-top: 10px;
+      }
+
+      .highlight {
+        background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        padding: 1px 3px;
+        border-radius: 3px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6c757d;
+      }
+
+      .empty-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+      }
+
+      .collapsible-content {
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .collapsible-content.collapsed {
+        max-height: 0;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          margin: 10px;
+          border-radius: 8px;
+        }
+
+        .header {
+          padding: 20px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .controls {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .stats {
+          flex-direction: column;
+          gap: 15px;
+        }
+
+        .log-container {
+          padding: 20px;
+          padding-left: 40px;
+        }
+
+        .log-entry::before {
+          left: -35px;
+          width: 25px;
+          height: 25px;
+          font-size: 0.8rem;
+        }
+      }
+
+      .loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🔍 Universal Log Viewer</h1>
+        <p>Advanced log analysis tool for KIOSK applications and more</p>
+      </div>
+
+      <div class="upload-section">
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">Drag & drop your log files here</div>
+          <input
+            type="file"
+            id="fileInput"
+            accept=".txt,.log"
+            style="display: none"
+            multiple
+          />
+          <button
+            class="upload-btn"
+            onclick="document.getElementById('fileInput').click()"
+          >
+            Choose Files
+          </button>
+          <div class="file-info" id="fileInfo" style="display: none"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="search-container">
+          <input
+            type="text"
+            id="searchInput"
+            class="search-box"
+            placeholder="🔍 Search logs..."
+          />
+        </div>
+        <div class="filters">
+          <div class="filter-item">
+            <input
+              type="checkbox"
+              class="filter-checkbox"
+              id="filter-api"
+              data-type="api"
+              checked
+            />
+            <label class="filter-label" for="filter-api">API Calls</label>
+          </div>
+          <div class="filter-item">
+            <input
+              type="checkbox"
+              class="filter-checkbox"
+              id="filter-info"
+              data-type="info"
+              checked
+            />
+            <label class="filter-label" for="filter-info">Information</label>
+          </div>
+          <div class="filter-item">
+            <input
+              type="checkbox"
+              class="filter-checkbox"
+              id="filter-warning"
+              data-type="warning"
+              checked
+            />
+            <label class="filter-label" for="filter-warning">Warnings</label>
+          </div>
+          <div class="filter-item">
+            <input
+              type="checkbox"
+              class="filter-checkbox"
+              id="filter-error"
+              data-type="error"
+              checked
+            />
+            <label class="filter-label" for="filter-error">Errors</label>
+          </div>
+          <div class="filter-item">
+            <input
+              type="checkbox"
+              class="filter-checkbox"
+              id="filter-debug"
+              data-type="debug"
+              checked
+            />
+            <label class="filter-label" for="filter-debug">Debug</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats" id="stats" style="display: none">
+        <div class="stat-item">
+          <div class="stat-number" id="totalEntries">0</div>
+          <div class="stat-label">Total Entries</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="apiCalls">0</div>
+          <div class="stat-label">API Calls</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="errors">0</div>
+          <div class="stat-label">Errors</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="visibleEntries">0</div>
+          <div class="stat-label">Visible</div>
+        </div>
+      </div>
+
+      <div class="log-container" id="logContainer">
+        <div class="empty-state">
+          <div class="empty-icon">📄</div>
+          <h3>No logs loaded</h3>
+          <p>Upload log files to start analyzing</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      class UniversalLogViewer {
+        constructor() {
+          this.logEntries = [];
+          this.filteredEntries = [];
+          this.searchTerm = "";
+          this.activeFilters = new Set([
+            "api",
+            "info",
+            "warning",
+            "error",
+            "debug",
+          ]);
+
+          this.initializeEventListeners();
+        }
+
+        initializeEventListeners() {
+          const uploadArea = document.getElementById("uploadArea");
+          const fileInput = document.getElementById("fileInput");
+          const searchInput = document.getElementById("searchInput");
+          const filterCheckboxes =
+            document.querySelectorAll(".filter-checkbox");
+
+          // File upload events
+          uploadArea.addEventListener(
+            "dragover",
+            this.handleDragOver.bind(this)
+          );
+          uploadArea.addEventListener(
+            "dragleave",
+            this.handleDragLeave.bind(this)
+          );
+          uploadArea.addEventListener("drop", this.handleDrop.bind(this));
+          fileInput.addEventListener(
+            "change",
+            this.handleFileSelect.bind(this)
+          );
+
+          // Search event
+          searchInput.addEventListener("input", this.handleSearch.bind(this));
+
+          // Filter events
+          filterCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener(
+              "change",
+              this.handleFilterChange.bind(this)
+            );
+          });
+        }
+
+        handleDragOver(e) {
+          e.preventDefault();
+          document.getElementById("uploadArea").classList.add("dragover");
+        }
+
+        handleDragLeave(e) {
+          e.preventDefault();
+          document.getElementById("uploadArea").classList.remove("dragover");
+        }
+
+        handleDrop(e) {
+          e.preventDefault();
+          document.getElementById("uploadArea").classList.remove("dragover");
+
+          const files = Array.from(e.dataTransfer.files);
+          this.processFiles(files);
+        }
+
+        handleFileSelect(e) {
+          const files = Array.from(e.target.files);
+          this.processFiles(files);
+        }
+
+        async processFiles(files) {
+          const logFiles = files.filter((file) =>
+            file.name.match(/\.(txt|log)$/i)
+          );
+
+          if (logFiles.length === 0) {
+            alert("Please select valid log files (.txt or .log)");
+            return;
+          }
+
+          this.showLoading();
+          this.updateFileInfo(logFiles);
+
+          try {
+            this.logEntries = [];
+
+            for (const file of logFiles) {
+              const content = await this.readFile(file);
+              const entries = this.parseLogFile(content, file.name);
+              this.logEntries.push(...entries);
+            }
+
+            this.logEntries.sort(
+              (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+            );
+            this.applyFiltersAndSearch();
+            this.updateStats();
+            this.hideLoading();
+          } catch (error) {
+            console.error("Error processing files:", error);
+            alert("Error processing files. Please try again.");
+            this.hideLoading();
+          }
+        }
+
+        readFile(file) {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = reject;
+            reader.readAsText(file);
+          });
+        }
+
+        parseLogFile(content, filename) {
+          const entries = [];
+          const lines = content.split("\n");
+          let currentEntry = "";
+          let lineNumber = 0;
+
+          for (const line of lines) {
+            lineNumber++;
+
+            // Check if this is a new log entry (starts with timestamp)
+            if (this.isNewLogEntry(line)) {
+              if (currentEntry.trim()) {
+                const parsed = this.parseLogEntry(currentEntry, filename);
+                if (parsed) entries.push(parsed);
+              }
+              currentEntry = line;
+            } else {
+              currentEntry += "\n" + line;
+            }
+          }
+
+          // Process the last entry
+          if (currentEntry.trim()) {
+            const parsed = this.parseLogEntry(currentEntry, filename);
+            if (parsed) entries.push(parsed);
+          }
+
+          return entries;
+        }
+
+        isNewLogEntry(line) {
+          // Multiple timestamp formats
+          const timestampPatterns = [
+            /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/, // ISO format
+            /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/, // Standard format
+            /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2}/, // US format
+            /^\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\]/, // Bracketed format
+          ];
+
+          return timestampPatterns.some((pattern) => pattern.test(line.trim()));
+        }
+
+        parseLogEntry(entry, filename) {
+          try {
+            const lines = entry.split("\n").filter((line) => line.trim());
+            if (lines.length === 0) return null;
+
+            const firstLine = lines[0];
+            const timestamp = this.extractTimestamp(firstLine);
+
+            if (!timestamp) return null;
+
+            // Determine log type and parse accordingly
+            if (this.isApiLogEntry(entry)) {
+              return this.parseApiLogEntry(entry, timestamp, filename);
+            } else {
+              return this.parseGeneralLogEntry(entry, timestamp, filename);
+            }
+          } catch (error) {
+            console.warn("Error parsing log entry:", error);
+            return null;
+          }
+        }
+
+        extractTimestamp(line) {
+          const patterns = [
+            /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?(?:Z|[+-]\d{2}:\d{2})?)/,
+            /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d{3})?)/,
+            /^(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}:\d{2})/,
+            /^\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d{3})?)\]/,
+          ];
+
+          for (const pattern of patterns) {
+            const match = line.match(pattern);
+            if (match) return match[1];
+          }
+
+          return null;
+        }
+
+        isApiLogEntry(entry) {
+          return (
+            entry.includes("[RestSharp]") ||
+            entry.includes("[POST]") ||
+            entry.includes("[GET]") ||
+            entry.includes("[PUT]") ||
+            entry.includes("[DELETE]") ||
+            entry.includes("[BODY]") ||
+            entry.includes("[Result]")
+          );
+        }
+
+        parseApiLogEntry(entry, timestamp, filename) {
+          const methodMatch = entry.match(/\[(POST|GET|PUT|DELETE)\]/);
+          const urlMatch = entry.match(/\]\s*([^\s\[]+)/);
+          const bodyMatch = entry.match(/\[BODY\]\s*(.*?)\s*(?:\[Result\]|$)/s);
+          const resultMatch = entry.match(
+            /\[Result\]\s*(.*?)(?:\d{2}:\d{2}:\d{2}\.\d{2}\s*)?$/s
+          );
+          const durationMatch = entry.match(/(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/);
+
+          return {
+            timestamp,
+            type: "api",
+            method: methodMatch ? methodMatch[1] : "UNKNOWN",
+            url: urlMatch ? urlMatch[1].trim() : "",
+            body: bodyMatch ? this.tryParseJson(bodyMatch[1].trim()) : null,
+            result: resultMatch
+              ? this.tryParseJson(resultMatch[1].trim())
+              : null,
+            duration: durationMatch ? durationMatch[1] : null,
+            filename,
+            rawContent: entry,
+          };
+        }
+
+        parseGeneralLogEntry(entry, timestamp, filename) {
+          let type = "info";
+          let content = entry;
+
+          // Remove timestamp from content
+          content = content.replace(/^[^\s]+\s*/, "");
+
+          // Determine log type from content
+          if (
+            entry.toLowerCase().includes("error") ||
+            entry.includes("[Error]")
+          ) {
+            type = "error";
+          } else if (
+            entry.toLowerCase().includes("warning") ||
+            entry.includes("[Warning]")
+          ) {
+            type = "warning";
+          } else if (
+            entry.toLowerCase().includes("debug") ||
+            entry.includes("[Debug]")
+          ) {
+            type = "debug";
+          } else if (entry.includes("[DIAGRAM]")) {
+            type = "debug";
+            content = entry.match(/\[DIAGRAM\]\s*(.*)/s)?.[1] || content;
+          }
+
+          // Clean up content
+          content = content
+            .replace(/\[(Information|Error|Warning|Debug|DIAGRAM)\]\s*/g, "")
+            .trim();
+
+          return {
+            timestamp,
+            type,
+            content,
+            filename,
+            rawContent: entry,
+          };
+        }
+
+        tryParseJson(text) {
+          if (!text || text === "null") return null;
+
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            return text;
+          }
+        }
+
+        handleSearch(e) {
+          this.searchTerm = e.target.value.toLowerCase();
+          this.applyFiltersAndSearch();
+        }
+
+        handleFilterChange(e) {
+          const filterType = e.target.dataset.type;
+
+          if (e.target.checked) {
+            this.activeFilters.add(filterType);
+          } else {
+            this.activeFilters.delete(filterType);
+          }
+
+          this.applyFiltersAndSearch();
+        }
+
+        applyFiltersAndSearch() {
+          this.filteredEntries = this.logEntries.filter((entry) => {
+            // Apply type filter
+            if (!this.activeFilters.has(entry.type)) return false;
+
+            // Apply search filter
+            if (this.searchTerm) {
+              const searchableText = [
+                entry.timestamp,
+                entry.url || "",
+                entry.content || "",
+                JSON.stringify(entry.body || ""),
+                JSON.stringify(entry.result || ""),
+                entry.filename,
+              ]
+                .join(" ")
+                .toLowerCase();
+
+              if (!searchableText.includes(this.searchTerm)) return false;
+            }
+
+            return true;
+          });
+
+          this.renderLogEntries();
+          this.updateStats();
+        }
+
+        renderLogEntries() {
+          const container = document.getElementById("logContainer");
+
+          if (this.filteredEntries.length === 0) {
+            container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <h3>No matching entries</h3>
+                            <p>Try adjusting your search or filters</p>
+                        </div>
+                    `;
+            return;
+          }
+
+          const html = this.filteredEntries
+            .map((entry, index) => {
+              return this.renderLogEntry(entry, index);
+            })
+            .join("");
+
+          container.innerHTML = html;
+
+          // Add click listeners for collapsible content
+          this.addCollapsibleListeners();
+        }
+
+        renderLogEntry(entry, index) {
+          if (entry.type === "api") {
+            return this.renderApiEntry(entry, index);
+          } else {
+            return this.renderGeneralEntry(entry, index);
+          }
+        }
+
+        renderApiEntry(entry, index) {
+          const bodyHtml = entry.body ? this.formatJsonContent(entry.body) : "";
+          const resultHtml = entry.result
+            ? this.formatJsonContent(entry.result)
+            : "";
+
+          return `
+                    <div class="log-entry" data-type="${entry.type}">
+                        <div class="log-header">
+                            <div class="timestamp">${entry.timestamp}</div>
+                            <div>
+                                <span class="log-type type-api">API</span>
+                                <span class="method-tag method-${entry.method.toLowerCase()}">${
+            entry.method
+          }</span>
+                                <span class="url">${this.highlightText(
+                                  entry.url || ""
+                                )}</span>
+                            </div>
+                        </div>
+                        <div class="log-content">
+                            ${
+                              entry.body
+                                ? `
+                                <div class="content-section">
+                                    <div class="content-label" onclick="toggleCollapse('body-${index}')">
+                                        📤 Request Body
+                                        <span class="toggle-icon" id="icon-body-${index}">▼</span>
+                                    </div>
+                                    <div class="collapsible-content" id="body-${index}">
+                                        <div class="json-content">${bodyHtml}</div>
+                                    </div>
+                                </div>
+                            `
+                                : ""
+                            }
+                            ${
+                              entry.result
+                                ? `
+                                <div class="content-section">
+                                    <div class="content-label" onclick="toggleCollapse('result-${index}')">
+                                        📥 Response
+                                        <span class="toggle-icon" id="icon-result-${index}">▼</span>
+                                    </div>
+                                    <div class="collapsible-content" id="result-${index}">
+                                        <div class="json-content">${resultHtml}</div>
+                                    </div>
+                                </div>
+                            `
+                                : ""
+                            }
+                            ${
+                              entry.duration
+                                ? `
+                                <div class="duration">⏱️ Duration: ${entry.duration}</div>
+                            `
+                                : ""
+                            }
+                            <div class="duration">📁 ${entry.filename}</div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        renderGeneralEntry(entry, index) {
+          return `
+                    <div class="log-entry" data-type="${entry.type}">
+                        <div class="log-header">
+                            <div class="timestamp">${entry.timestamp}</div>
+                            <div>
+                                <span class="log-type type-${
+                                  entry.type
+                                }">${entry.type.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <div class="log-content">
+                            <div class="content-section">
+                                <div class="text-content">${this.highlightText(
+                                  entry.content || ""
+                                )}</div>
+                            </div>
+                            <div class="duration">📁 ${entry.filename}</div>
+                        </div>
+                    </div>
+                `;
+        }
+
+        formatJsonContent(content) {
+          if (typeof content === "object" && content !== null) {
+            return this.highlightText(JSON.stringify(content, null, 2));
+          }
+          return this.highlightText(String(content));
+        }
+
+        formatTimestamp(timestamp) {
+          try {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+          } catch (e) {
+            return timestamp;
+          }
+        }
+
+        highlightText(text) {
+          if (!this.searchTerm) return this.escapeHtml(text);
+
+          const regex = new RegExp(this.escapeRegex(this.searchTerm), "gi");
+          return this.escapeHtml(text).replace(
+            regex,
+            (match) => `<span class="highlight">${match}</span>`
+          );
+        }
+
+        escapeHtml(text) {
+          const div = document.createElement("div");
+          div.textContent = text;
+          return div.innerHTML;
+        }
+
+        escapeRegex(string) {
+          return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        addCollapsibleListeners() {
+          // The onclick handlers are already added in the HTML
+        }
+
+        updateFileInfo(files) {
+          const fileInfo = document.getElementById("fileInfo");
+          const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+
+          fileInfo.innerHTML = `
+                    <strong>${files.length}</strong> file(s) selected 
+                    (${this.formatFileSize(totalSize)})
+                `;
+          fileInfo.style.display = "block";
+        }
+
+        updateStats() {
+          document.getElementById("stats").style.display = "flex";
+          document.getElementById("totalEntries").textContent =
+            this.logEntries.length;
+          document.getElementById("apiCalls").textContent =
+            this.logEntries.filter((e) => e.type === "api").length;
+          document.getElementById("errors").textContent =
+            this.logEntries.filter((e) => e.type === "error").length;
+          document.getElementById("visibleEntries").textContent =
+            this.filteredEntries.length;
+        }
+
+        formatFileSize(bytes) {
+          if (bytes === 0) return "0 Bytes";
+          const k = 1024;
+          const sizes = ["Bytes", "KB", "MB", "GB"];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return (
+            parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+          );
+        }
+
+        showLoading() {
+          document.getElementById("logContainer").innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <span style="margin-left: 15px;">Processing logs...</span>
+                    </div>
+                `;
+        }
+
+        hideLoading() {
+          // Content will be replaced by renderLogEntries
+        }
+      }
+
+      // Global functions for collapsible content
+      function toggleCollapse(elementId) {
+        const content = document.getElementById(elementId);
+        const icon = document.getElementById(`icon-${elementId}`);
+
+        if (content.classList.contains("collapsed")) {
+          content.classList.remove("collapsed");
+          content.style.maxHeight = content.scrollHeight + "px";
+          icon.textContent = "▼";
+          icon.classList.remove("collapsed");
+        } else {
+          content.classList.add("collapsed");
+          content.style.maxHeight = "0";
+          icon.textContent = "▶";
+          icon.classList.add("collapsed");
+        }
+      }
+
+      // Initialize the application
+      document.addEventListener("DOMContentLoaded", () => {
+        new UniversalLogViewer();
+      });
+    </script>
+  </body>
+</html>
