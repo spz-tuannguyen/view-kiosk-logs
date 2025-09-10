@@ -829,7 +829,8 @@
             entry.includes("[PUT]") ||
             entry.includes("[DELETE]") ||
             entry.includes("[BODY]") ||
-            entry.includes("[Result]")
+            entry.includes("[Result]") ||
+            entry.includes("[Elapsed]")
           );
         }
 
@@ -838,9 +839,12 @@
           const urlMatch = entry.match(/\]\s*([^\s\[]+)/);
           const bodyMatch = entry.match(/\[BODY\]\s*(.*?)\s*(?:\[Result\]|$)/s);
           const resultMatch = entry.match(
-            /\[Result\]\s*(.*?)(?:\d{2}:\d{2}:\d{2}\.\d{2}\s*)?$/s
+            /\[Result\]\s*(.*?)\s*(?:\[Elapsed\]|$)/s
           );
-          const durationMatch = entry.match(/(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/);
+          const elapsedMatch = entry.match(/\[Elapsed\]\s*(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/);
+          
+          // Fallback for older duration format if no [Elapsed] tag
+          const durationMatch = elapsedMatch || entry.match(/(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/);
 
           return {
             timestamp,
@@ -1042,7 +1046,7 @@
                             ${
                               entry.duration
                                 ? `
-                                <div class="duration">⏱️ Duration: ${entry.duration}</div>
+                                <div class="duration">⏱️ Elapsed: ${entry.duration}</div>
                             `
                                 : ""
                             }
