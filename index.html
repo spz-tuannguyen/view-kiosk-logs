@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -532,7 +532,7 @@
               <button
                 class="upload-btn refresh-btn"
                 id="refreshBtn"
-                style="display: none; margin-top: 10px;"
+                style="display: none; margin-top: 10px"
               >
                 ↻ Refresh File
               </button>
@@ -668,16 +668,16 @@
           // File upload events
           uploadArea.addEventListener(
             "dragover",
-            this.handleDragOver.bind(this)
+            this.handleDragOver.bind(this),
           );
           uploadArea.addEventListener(
             "dragleave",
-            this.handleDragLeave.bind(this)
+            this.handleDragLeave.bind(this),
           );
           uploadArea.addEventListener("drop", this.handleDrop.bind(this));
           fileInput.addEventListener(
             "change",
-            this.handleFileSelect.bind(this)
+            this.handleFileSelect.bind(this),
           );
 
           // Refresh event
@@ -690,7 +690,7 @@
           filterCheckboxes.forEach((checkbox) => {
             checkbox.addEventListener(
               "change",
-              this.handleFilterChange.bind(this)
+              this.handleFilterChange.bind(this),
             );
           });
         }
@@ -727,7 +727,7 @@
 
         async processFiles(files) {
           const logFiles = files.filter((file) =>
-            file.name.match(/\.(txt|log)$/i)
+            file.name.match(/\.(txt|log)$/i),
           );
 
           if (logFiles.length === 0) {
@@ -736,7 +736,7 @@
           }
 
           this.currentFiles = logFiles;
-          document.getElementById('refreshBtn').style.display = 'inline-block';
+          document.getElementById("refreshBtn").style.display = "inline-block";
 
           this.showLoading();
           this.updateFileInfo(logFiles);
@@ -751,7 +751,7 @@
             }
 
             this.logEntries.sort(
-              (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+              (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
             );
             this.applyFiltersAndSearch();
             this.updateStats();
@@ -870,12 +870,15 @@
           const urlMatch = entry.match(/\]\s*([^\s\[]+)/);
           const bodyMatch = entry.match(/\[BODY\]\s*(.*?)\s*(?:\[Result\]|$)/s);
           const resultMatch = entry.match(
-            /\[Result\]\s*(.*?)\s*(?:\[Elapsed\]|$)/s
+            /\[Result\]\s*(.*?)\s*(?:\[Elapsed\]|$)/s,
           );
-          const elapsedMatch = entry.match(/\[Elapsed\]\s*(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/);
-          
+          const elapsedMatch = entry.match(
+            /\[Elapsed\]\s*(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/,
+          );
+
           // Fallback for older duration format if no [Elapsed] tag
-          const durationMatch = elapsedMatch || entry.match(/(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/);
+          const durationMatch =
+            elapsedMatch || entry.match(/(\d{2}:\d{2}:\d{2}\.\d{2})\s*$/);
 
           return {
             timestamp,
@@ -1036,10 +1039,10 @@
                             <div>
                                 <span class="log-type type-api">API</span>
                                 <span class="method-tag method-${entry.method.toLowerCase()}">${
-            entry.method
-          }</span>
+                                  entry.method
+                                }</span>
                                 <span class="url">${this.highlightText(
-                                  entry.url || ""
+                                  entry.url || "",
                                 )}</span>
                             </div>
                         </div>
@@ -1101,7 +1104,7 @@
                         <div class="log-content">
                             <div class="content-section">
                                 <div class="text-content">${this.highlightText(
-                                  entry.content || ""
+                                  entry.content || "",
                                 )}</div>
                             </div>
                             <div class="duration">📁 ${entry.filename}</div>
@@ -1132,7 +1135,7 @@
           const regex = new RegExp(this.escapeRegex(this.searchTerm), "gi");
           return this.escapeHtml(text).replace(
             regex,
-            (match) => `<span class="highlight">${match}</span>`
+            (match) => `<span class="highlight">${match}</span>`,
           );
         }
 
@@ -1205,7 +1208,7 @@
           const result = this.parseApiLogEntry(
             testLine,
             "2025-08-26 09:09:51.245",
-            "test.log"
+            "test.log",
           );
           console.log("Test result:", result);
 
